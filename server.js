@@ -1,22 +1,37 @@
+////////////
+// IMPORTS
+////////////
+
+
 const express  = require('express');
 const { createYoga } = require('graphql-yoga');
-const { createSchema } = require('graphql-yoga');
+const { loadFilesSync } = require('@graphql-tools/load-files')
+const { makeExecutableSchema } = require('@graphql-tools/schema')
 
-const schema = createSchema({
-    typeDefs: /* GraphQL */ `
-      type Query {
-        description: String
-        price: Float
-      }
-    `,
-    resolvers: {
-      Query: {
-        description: () => 'Red Shoe',
-        price: () => 42.12,
 
-      }
-    }
-  })
+///////////////
+// VARs SETUPS
+///////////////
+
+
+const typesArray = loadFilesSync('**/*',{
+    extensions: ['graphql'],
+});
+
+const resolversArray = loadFilesSync('**/*', {
+    extensions: ['resolvers.js'],
+})
+
+const schema = makeExecutableSchema({
+    typeDefs: typesArray,
+    resolvers: resolversArray,
+})
+
+
+//////////////////////////////////
+// SERVER CREATION & MIDDLEWARES
+//////////////////////////////////
+
 
 const app = express()
 
@@ -28,8 +43,19 @@ const yoga = createYoga({
     graphiql: true,
 })
 
-// A continuacion el endpoint de graphql
+
+//////////////
+// ENDPOINTS
+//////////////
+
+
 app.use('/graphql', yoga)
+
+
+/////////////////
+// SERVER START!
+/////////////////
+
 
 app.listen(3000, () => {
     console.log('Running GraphQL server...')
